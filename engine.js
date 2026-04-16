@@ -344,6 +344,7 @@ function collectPayload(scores, total, avgIntegrity, worstRisk) {
 window.addEventListener('DOMContentLoaded', () => {
   const startBtn = q('startBtn');
   const resultBtn = q('resultBtn');
+  const downloadBtn = q('downloadBtn');
 
   if (startBtn) {
     startBtn.onclick = () => {
@@ -399,15 +400,25 @@ window.addEventListener('DOMContentLoaded', () => {
       const payload = collectPayload(scores, total, avgIntegrity, worstRisk);
 
       try {
-        const result = await sendToGoogleSheets(payload);
-        console.log('Sheets response:', result);
+        await sendToGoogleSheets(payload);
         q('feedbackBox').textContent += '\n\nДані успішно передано в систему.';
       } catch (error) {
-        console.error('Помилка відправки в Google Sheets:', error);
         q('feedbackBox').textContent += '\n\nПОМИЛКА ВІДПРАВКИ: ' + error.message;
       }
 
       goToStep(5);
+    };
+  }
+
+  if (downloadBtn) {
+    downloadBtn.onclick = () => {
+      const report = q('feedbackBox').textContent || 'Звіт відсутній';
+      const blob = new Blob([report], { type: 'text/plain;charset=utf-8' });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = 'zvit_praktychna_robota.txt';
+      link.click();
+      URL.revokeObjectURL(link.href);
     };
   }
 });
