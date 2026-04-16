@@ -13,19 +13,20 @@ function normalize(text) {
     .trim();
 }
 
-function isValidStudentCodeFormat(code) {
+function isValidStudentCode(code) {
   const value = (code || '').trim();
-  return /^[A-Za-zА-Яа-яІіЇїЄєҐґ0-9_-]{3,20}$/.test(value);
+  return /^[A-Za-zА-Яа-яІіЇїЄєҐґ0-9_-]{3,30}$/.test(value);
 }
 
-function setCodeMessage(text, isError = false) {
+function setCodeHint(message, isInvalid = false) {
   const input = q('studentCode');
   const hint = q('codeHint');
 
   if (!hint || !input) return;
 
-  hint.textContent = text;
-  if (isError) input.classList.add('invalid');
+  hint.textContent = message;
+
+  if (isInvalid) input.classList.add('invalid');
   else input.classList.remove('invalid');
 }
 
@@ -254,8 +255,17 @@ function scoreTask2(answer, taskConfig) {
   const length = text.length;
 
   const habitHits = [
-    'вимикаю', 'сортую', 'багаторазов', 'торбин', 'батарей',
-    'економія', 'пляшк', 'пакет', 'смітт', 'світло', 'вода',
+    'вимикаю',
+    'сортую',
+    'багаторазов',
+    'торбин',
+    'батарей',
+    'економія',
+    'пляшк',
+    'пакет',
+    'смітт',
+    'світло',
+    'вода',
     'не купувати зайвого'
   ];
 
@@ -277,8 +287,15 @@ function scoreTask3(answer, taskConfig) {
   const rightsCount = countRights(answer);
 
   const stateActions = [
-    'звітн', 'моніторинг', 'податков', 'пільг',
-    'контрол', 'прозор', 'рівну оплату', 'керівн', 'підтрим'
+    'звітн',
+    'моніторинг',
+    'податков',
+    'пільг',
+    'контрол',
+    'прозор',
+    'рівну оплату',
+    'керівн',
+    'підтрим'
   ];
 
   let actions = 0;
@@ -306,8 +323,14 @@ function scoreTask4(answer, taskConfig) {
   ];
 
   const argumentHits = [
-    'довір', 'бюджет', 'прозор', 'економік',
-    'суспіль', 'нульова толерантність', 'менше корупц', 'справедлив'
+    'довір',
+    'бюджет',
+    'прозор',
+    'економік',
+    'суспіль',
+    'нульова толерантність',
+    'менше корупц',
+    'справедлив'
   ];
 
   let functionsFound = 0;
@@ -390,16 +413,15 @@ window.addEventListener('DOMContentLoaded', () => {
       const value = studentCodeInput.value;
 
       if (value.trim() === '') {
-        studentCodeInput.classList.remove('invalid');
-        setCodeMessage('Введіть ваш навчальний код для початку роботи.');
+        setCodeHint('Введіть ваш навчальний код для початку роботи.', false);
         return;
       }
 
-      const isValid = isValidStudentCodeFormat(value);
-      setCodeMessage(
-        isValid ? 'Формат коду коректний. Тепер він буде перевірений у системі.' : 'Введіть коректний код: 3–20 символів, без зайвих пробілів.',
-        !isValid
-      );
+      if (!isValidStudentCode(value)) {
+        setCodeHint('Введіть коректний код: 3–30 символів, без зайвих пробілів.', true);
+      } else {
+        setCodeHint('Формат коду коректний. Під час старту буде виконано перевірку в системі.', false);
+      }
     });
   }
 
@@ -407,28 +429,25 @@ window.addEventListener('DOMContentLoaded', () => {
     startBtn.onclick = async () => {
       const code = q('studentCode') ? q('studentCode').value.trim() : '';
 
-      if (!isValidStudentCodeFormat(code)) {
-        setCodeMessage('Введіть коректний код: 3–20 символів, без зайвих пробілів.', true);
+      if (!isValidStudentCode(code)) {
+        setCodeHint('Введіть коректний код: 3–30 символів, без зайвих пробілів.', true);
         return;
       }
 
-      setCodeMessage('Перевірка коду в системі…');
+      startBtn.disabled = true;
+      setCodeHint('Перевірка коду в системі...', false);
 
       try {
-        const validation = await validateStudentCodeRemote(code);
-
-        if (!validation.ok) {
-          setCodeMessage(validation.error || 'Код не пройшов перевірку.', true);
-          return;
-        }
-
-        setCodeMessage('Код підтверджено. Можна розпочинати роботу.');
+        await validateStudentCode(code);
+        setCodeHint('Код підтверджено. Доступ відкрито.', false);
         q('welcome').classList.add('hidden');
         q('app').classList.remove('hidden');
         goToStep(1);
         startTimer();
       } catch (error) {
-        setCodeMessage('Не вдалося перевірити код у системі. Спробуйте ще раз або повідомте вчителя.', true);
+        setCodeHint(error.message || 'Не вдалося перевірити код.', true);
+      } finally {
+        startBtn.disabled = false;
       }
     };
   }
