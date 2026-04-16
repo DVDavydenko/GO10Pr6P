@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Отримати свій код</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <section class="screen">
+    <div class="card hero hero-compact">
+      <div class="badge">Персональний доступ</div>
+      <h1>Отримати свій код</h1>
+      <p class="topic">Введіть своє прізвище, ім’я та клас</p>
+
+      <div class="field field-compact">
+        <label for="studentName">Прізвище та ім’я</label>
+        <input id="studentName" placeholder="Наприклад: Благодир Вадим Вікторович" />
+      </div>
+
+      <div class="field field-compact">
+        <label for="classValue">Клас</label>
+        <input id="classValue" placeholder="Наприклад: 10-А" />
+      </div>
+
+      <div class="btns center-btns">
+        <button class="primary" id="getCodeBtn">Отримати код</button>
+      </div>
+
+      <div id="resultBox" class="criteria hidden" style="margin-top:20px;"></div>
+    </div>
+  </section>
+
+  <script src="api.js"></script>
+  <script>
+    const btn = document.getElementById('getCodeBtn');
+    const resultBox = document.getElementById('resultBox');
+
+    btn.addEventListener('click', async () => {
+      const studentName = document.getElementById('studentName').value.trim();
+      const classValue = document.getElementById('classValue').value.trim();
+
+      if (!studentName || !classValue) {
+        resultBox.classList.remove('hidden');
+        resultBox.textContent = 'Введіть ПІБ і клас.';
+        return;
+      }
+
+      btn.disabled = true;
+      resultBox.classList.remove('hidden');
+      resultBox.textContent = 'Пошук...';
+
+      try {
+        const res = await getStudentCode(studentName, classValue);
+
+        resultBox.textContent =
+          `Учень: ${res.student}\n` +
+          `Клас: ${res.classValue}\n` +
+          `Код: ${res.code}\n` +
+          `Статус: ${res.status}\n` +
+          `Використано: ${res.used}`;
+      } catch (e) {
+        resultBox.textContent = e.message || 'Не вдалося знайти код.';
+      } finally {
+        btn.disabled = false;
+      }
+    });
+  </script>
+</body>
+</html>
