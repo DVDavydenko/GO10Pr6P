@@ -13,24 +13,20 @@ function normalize(text) {
     .trim();
 }
 
-function isValidStudentCode(code) {
+function isValidStudentCodeFormat(code) {
   const value = (code || '').trim();
   return /^[A-Za-zА-Яа-яІіЇїЄєҐґ0-9_-]{3,20}$/.test(value);
 }
 
-function showCodeValidationState(isValid) {
+function setCodeMessage(text, isError = false) {
   const input = q('studentCode');
   const hint = q('codeHint');
 
-  if (!input || !hint) return;
+  if (!hint || !input) return;
 
-  if (isValid) {
-    input.classList.remove('invalid');
-    hint.textContent = 'Код прийнято. Можна розпочинати роботу.';
-  } else {
-    input.classList.add('invalid');
-    hint.textContent = 'Введіть коректний код: 3–20 символів, без зайвих пробілів.';
-  }
+  hint.textContent = text;
+  if (isError) input.classList.add('invalid');
+  else input.classList.remove('invalid');
 }
 
 function goToStep(stepNumber) {
@@ -258,17 +254,8 @@ function scoreTask2(answer, taskConfig) {
   const length = text.length;
 
   const habitHits = [
-    'вимикаю',
-    'сортую',
-    'багаторазов',
-    'торбин',
-    'батарей',
-    'економія',
-    'пляшк',
-    'пакет',
-    'смітт',
-    'світло',
-    'вода',
+    'вимикаю', 'сортую', 'багаторазов', 'торбин', 'батарей',
+    'економія', 'пляшк', 'пакет', 'смітт', 'світло', 'вода',
     'не купувати зайвого'
   ];
 
@@ -290,15 +277,8 @@ function scoreTask3(answer, taskConfig) {
   const rightsCount = countRights(answer);
 
   const stateActions = [
-    'звітн',
-    'моніторинг',
-    'податков',
-    'пільг',
-    'контрол',
-    'прозор',
-    'рівну оплату',
-    'керівн',
-    'підтрим'
+    'звітн', 'моніторинг', 'податков', 'пільг',
+    'контрол', 'прозор', 'рівну оплату', 'керівн', 'підтрим'
   ];
 
   let actions = 0;
@@ -326,14 +306,8 @@ function scoreTask4(answer, taskConfig) {
   ];
 
   const argumentHits = [
-    'довір',
-    'бюджет',
-    'прозор',
-    'економік',
-    'суспіль',
-    'нульова толерантність',
-    'менше корупц',
-    'справедлив'
+    'довір', 'бюджет', 'прозор', 'економік',
+    'суспіль', 'нульова толерантність', 'менше корупц', 'справедлив'
   ];
 
   let functionsFound = 0;
@@ -367,16 +341,6 @@ function scoreAnswer(answer, taskConfig, index) {
   else if (integrity.risk === 'високий' && score > 1) score -= 1;
 
   return Math.max(0, Math.min(taskConfig.max, score));
-}
-
-function buildTeacherPayloadData(scores, integrityList, avgIntegrity, worstRisk, sentSuccessfully) {
-  return {
-    scores,
-    integrityList,
-    avgIntegrity,
-    worstRisk,
-    sentSuccessfully
-  };
 }
 
 function collectPayload(scores, total, avgIntegrity, worstRisk) {
@@ -427,29 +391,45 @@ window.addEventListener('DOMContentLoaded', () => {
 
       if (value.trim() === '') {
         studentCodeInput.classList.remove('invalid');
-        if (q('codeHint')) q('codeHint').textContent = 'Введіть ваш навчальний код для початку роботи.';
+        setCodeMessage('Введіть ваш навчальний код для початку роботи.');
         return;
       }
 
-      showCodeValidationState(isValidStudentCode(value));
+      const isValid = isValidStudentCodeFormat(value);
+      setCodeMessage(
+        isValid ? 'Формат коду коректний. Тепер він буде перевірений у системі.' : 'Введіть коректний код: 3–20 символів, без зайвих пробілів.',
+        !isValid
+      );
     });
   }
 
   if (startBtn) {
-    startBtn.onclick = () => {
+    startBtn.onclick = async () => {
       const code = q('studentCode') ? q('studentCode').value.trim() : '';
-      const isValid = isValidStudentCode(code);
 
-      if (!isValid) {
-        showCodeValidationState(false);
+      if (!isValidStudentCodeFormat(code)) {
+        setCodeMessage('Введіть коректний код: 3–20 символів, без зайвих пробілів.', true);
         return;
       }
 
-      showCodeValidationState(true);
-      q('welcome').classList.add('hidden');
-      q('app').classList.remove('hidden');
-      goToStep(1);
-      startTimer();
+      setCodeMessage('Перевірка коду в системі…');
+
+      try {
+        const validation = await validateStudentCodeRemote(code);
+
+        if (!validation.ok) {
+          setCodeMessage(validation.error || 'Код не пройшов перевірку.', true);
+          return;
+        }
+
+        setCodeMessage('Код підтверджено. Можна розпочинати роботу.');
+        q('welcome').classList.add('hidden');
+        q('app').classList.remove('hidden');
+        goToStep(1);
+        startTimer();
+      } catch (error) {
+        setCodeMessage('Не вдалося перевірити код у системі. Спробуйте ще раз або повідомте вчителя.', true);
+      }
     };
   }
 
