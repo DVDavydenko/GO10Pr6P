@@ -10,13 +10,12 @@ async function sendToGoogleSheets(payload) {
   });
 
   const rawText = await response.text();
-  console.log('GAS raw response:', rawText);
 
   let result;
   try {
     result = JSON.parse(rawText);
-  } catch (e) {
-    throw new Error('GAS повернув не JSON: ' + rawText);
+  } catch (error) {
+    throw new Error('GAS повернув не JSON');
   }
 
   if (!result.ok) {
