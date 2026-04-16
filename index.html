@@ -32,7 +32,7 @@
         <div class="pill">Громадянська освіта • 10 клас</div>
         <div class="progress-wrap"><div id="progress" class="progress"></div></div>
         <div id="timerBox" class="timer">30:00</div>
-        <div id="saveStatus" class="status">Чернетку не збережено</div>
+        <div id="saveStatus" class="status">Чернетку збережено локально</div>
         <div id="stepLabel" class="status">Крок 1 із 5</div>
       </div>
     </header>
@@ -84,20 +84,26 @@
         </div>
 
         <div class="result-grid compact-results">
-          <div class="score"><div class="n" id="s1">0</div><div class="t">Завдання 1 / 3</div></div>
-          <div class="score"><div class="n" id="s2">0</div><div class="t">Завдання 2 / 3</div></div>
-          <div class="score"><div class="n" id="s3">0</div><div class="t">Завдання 3 / 3</div></div>
-          <div class="score"><div class="n" id="s4">0</div><div class="t">Завдання 4 / 3</div></div>
+          <div class="score"><div class="n" id="s1">0/3</div><div class="t">1</div></div>
+          <div class="score"><div class="n" id="s2">0/3</div><div class="t">2</div></div>
+          <div class="score"><div class="n" id="s3">0/3</div><div class="t">3</div></div>
+          <div class="score"><div class="n" id="s4">0/3</div><div class="t">4</div></div>
         </div>
 
         <div class="total-line">Загальний попередній бал: <strong id="totalBigInline">0</strong> / 12</div>
         <div class="criteria" id="feedbackBox"></div>
 
         <div id="studentMessage" class="student-message">
-          Дякуємо. Ваші відповіді успішно опрацьовано. Дані передано в систему для подальшої перевірки вчителем.
+          Дякуємо. Ваші відповіді успішно надіслано в систему. Після перевірки вчителем результат буде відображено у встановленому порядку.
         </div>
 
-        <div class="nav"><button class="ghost" data-step="4">Назад</button><div class="btns"><button class="primary" id="downloadBtn">Завантажити звіт .txt</button><button class="ghost" onclick="window.print()">Друк</button></div></div>
+        <div class="nav" id="fallbackActions" style="display:none;">
+          <button class="ghost" data-step="4">Назад</button>
+          <div class="btns">
+            <button class="primary" id="downloadBtn">Завантажити звіт .txt</button>
+            <button class="ghost" id="printBtn" onclick="window.print()">Друк</button>
+          </div>
+        </div>
       </section>
     </main>
   </div>
