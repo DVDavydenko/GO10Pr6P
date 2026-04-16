@@ -38,6 +38,7 @@ async function sendToGoogleSheets(payload) {
     ...payload
   });
 }
+
 async function getStudentCode(studentName, classValue) {
   return await postToGAS({
     action: 'getStudentCode',
