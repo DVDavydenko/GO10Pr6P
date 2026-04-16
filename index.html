@@ -8,26 +8,20 @@
 </head>
 <body>
   <section id="welcome" class="screen">
-    <div class="card hero">
+    <div class="card hero hero-compact">
       <div class="badge">Практична робота</div>
       <h1>Громадянська освіта</h1>
-      <p class="sub">10 клас • тема: «Аналіз механізмів досягнення суспільного добробуту»</p>
+      <p class="sub sub-compact">10 клас</p>
+      <p class="topic">Тема: «Аналіз механізмів досягнення суспільного добробуту»</p>
 
-      <div class="grid">
-        <div class="mini"><div class="k">Формат</div><div class="v">4 розгорнуті завдання</div></div>
-        <div class="mini"><div class="k">Максимум</div><div class="v">12 балів</div></div>
-        <div class="mini"><div class="k">Результат</div><div class="v">Попередній автоматичний бал + перевірка вчителя</div></div>
-        <div class="mini"><div class="k">Збереження</div><div class="v">Чернетка зберігається у браузері</div></div>
-      </div>
-
-      <div class="field">
+      <div class="field field-compact">
         <label for="studentCode">Код учня / учениці</label>
         <input id="studentCode" placeholder="Наприклад: 10-А-07" />
+        <p id="codeHint" class="hint">Введіть ваш навчальний код для початку роботи.</p>
       </div>
 
       <div class="btns center-btns">
         <button class="primary" id="startBtn">Розпочати</button>
-        <button class="ghost" id="clearBtn">Очистити локальну чернетку</button>
       </div>
     </div>
   </section>
@@ -37,6 +31,7 @@
       <div class="bar">
         <div class="pill">Громадянська освіта • 10 клас</div>
         <div class="progress-wrap"><div id="progress" class="progress"></div></div>
+        <div id="timerBox" class="timer">30:00</div>
         <div id="saveStatus" class="status">Чернетку не збережено</div>
         <div id="stepLabel" class="status">Крок 1 із 5</div>
       </div>
@@ -85,25 +80,31 @@
 
       <section id="step-5" class="card panel step hidden">
         <div class="final">
-          <div class="big" id="totalBig">0</div>
           <h2>Попередній результат</h2>
-          <p class="muted">Це попередній автоматичний підрахунок. Остаточний бал визначає вчитель.</p>
         </div>
-        <div class="result-grid">
+
+        <div class="result-grid compact-results">
           <div class="score"><div class="n" id="s1">0</div><div class="t">Завдання 1 / 3</div></div>
           <div class="score"><div class="n" id="s2">0</div><div class="t">Завдання 2 / 3</div></div>
           <div class="score"><div class="n" id="s3">0</div><div class="t">Завдання 3 / 3</div></div>
           <div class="score"><div class="n" id="s4">0</div><div class="t">Завдання 4 / 3</div></div>
         </div>
+
+        <div class="total-line">Загальний попередній бал: <strong id="totalBigInline">0</strong> / 12</div>
         <div class="criteria" id="feedbackBox"></div>
+
+        <div id="studentMessage" class="student-message">
+          Дякуємо. Ваші відповіді успішно опрацьовано. Дані передано в систему для подальшої перевірки вчителем.
+        </div>
+
         <div class="nav"><button class="ghost" data-step="4">Назад</button><div class="btns"><button class="primary" id="downloadBtn">Завантажити звіт .txt</button><button class="ghost" onclick="window.print()">Друк</button></div></div>
       </section>
     </main>
   </div>
 
-<script src="config.js"></script>
-<script src="api.js"></script>
-<script src="engine.js"></script>
-<script src="storage.js"></script>
+  <script src="config.js"></script>
+  <script src="api.js"></script>
+  <script src="engine.js"></script>
+  <script src="storage.js"></script>
 </body>
 </html>
