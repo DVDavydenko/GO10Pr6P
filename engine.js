@@ -1,5 +1,9 @@
 const q = (id) => document.getElementById(id);
 
+const EXAM_DURATION_SECONDS = 30 * 60;
+let timerInterval = null;
+let timeLeft = EXAM_DURATION_SECONDS;
+
 function normalize(text) {
   return (text || '')
     .toLowerCase()
@@ -7,6 +11,26 @@ function normalize(text) {
     .replace(/`/g, "'")
     .replace(/\s+/g, ' ')
     .trim();
+}
+
+function isValidStudentCode(code) {
+  const value = (code || '').trim();
+  return /^[A-Za-zА-Яа-яІіЇїЄєҐґ0-9_-]{3,20}$/.test(value);
+}
+
+function showCodeValidationState(isValid) {
+  const input = q('studentCode');
+  const hint = q('codeHint');
+
+  if (!input || !hint) return;
+
+  if (isValid) {
+    input.classList.remove('invalid');
+    hint.textContent = 'Код прийнято. Можна розпочинати роботу.';
+  } else {
+    input.classList.add('invalid');
+    hint.textContent = 'Введіть коректний код: 3–20 символів, без пробілів на початку та в кінці.';
+  }
 }
 
 function goToStep(stepNumber) {
@@ -18,6 +42,51 @@ function goToStep(stepNumber) {
   const progress = ((stepNumber - 1) / 4) * 100;
   if (q('progress')) q('progress').style.width = `${progress}%`;
   if (q('stepLabel')) q('stepLabel').textContent = `Крок ${stepNumber} із 5`;
+}
+
+function formatTime(totalSeconds) {
+  const minutes = Math.floor(totalSeconds / 60);
+  const seconds = totalSeconds % 60;
+  return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+}
+
+function updateTimerUI() {
+  const timerBox = q('timerBox');
+  if (!timerBox) return;
+
+  timerBox.textContent = formatTime(timeLeft);
+  timerBox.classList.remove('warning', 'danger');
+
+  if (timeLeft <= 300) {
+    timerBox.classList.add('danger');
+  } else if (timeLeft <= 900) {
+    timerBox.classList.add('warning');
+  }
+}
+
+function startTimer() {
+  stopTimer();
+  updateTimerUI();
+
+  timerInterval = setInterval(() => {
+    timeLeft -= 1;
+    if (timeLeft < 0) timeLeft = 0;
+
+    updateTimerUI();
+
+    if (timeLeft === 0) {
+      stopTimer();
+      if (q('resultBtn') && !q('step-5').classList.contains('hidden')) return;
+      if (q('resultBtn')) q('resultBtn').click();
+    }
+  }, 1000);
+}
+
+function stopTimer() {
+  if (timerInterval) {
+    clearInterval(timerInterval);
+    timerInterval = null;
+  }
 }
 
 function countMatchedGroups(answer, groups) {
@@ -304,7 +373,7 @@ function scoreAnswer(answer, taskConfig, index) {
   return Math.max(0, Math.min(taskConfig.max, score));
 }
 
-function buildFeedback(scores, integrityList, avgIntegrity, worstRisk) {
+function buildFeedback(scores, integrityList, avgIntegrity, worstRisk, sentSuccessfully) {
   const lines = [];
   lines.push(`Індекс доброчесності: ${avgIntegrity}/100`);
   lines.push(`Рівень ризику: ${worstRisk}`);
@@ -312,15 +381,11 @@ function buildFeedback(scores, integrityList, avgIntegrity, worstRisk) {
 
   integrityList.forEach((item, index) => {
     lines.push(`Завдання ${index + 1}: ${scores[index]}/3 • індекс ${item.index}/100 • ризик: ${item.risk}`);
-    if (item.flags.length) {
-      lines.push(`Ознаки для уваги: ${item.flags.join('; ')}`);
-    } else {
-      lines.push('Суттєвих ризикових ознак не виявлено.');
-    }
-    lines.push('');
   });
 
-  lines.push('Попередній автоматичний результат не замінює перевірку вчителя.');
+  lines.push('');
+  lines.push(sentSuccessfully ? 'Дані успішно передано в систему.' : 'Виникла помилка передавання даних у систему.');
+
   return lines.join('\n');
 }
 
@@ -345,12 +410,37 @@ window.addEventListener('DOMContentLoaded', () => {
   const startBtn = q('startBtn');
   const resultBtn = q('resultBtn');
   const downloadBtn = q('downloadBtn');
+  const studentCodeInput = q('studentCode');
+
+  updateTimerUI();
+
+  if (studentCodeInput) {
+    studentCodeInput.addEventListener('input', () => {
+      const isValid = isValidStudentCode(studentCodeInput.value);
+      if (studentCodeInput.value.trim() === '') {
+        studentCodeInput.classList.remove('invalid');
+        if (q('codeHint')) q('codeHint').textContent = 'Введіть ваш навчальний код для початку роботи.';
+        return;
+      }
+      showCodeValidationState(isValid);
+    });
+  }
 
   if (startBtn) {
     startBtn.onclick = () => {
+      const code = q('studentCode') ? q('studentCode').value.trim() : '';
+      const isValid = isValidStudentCode(code);
+
+      if (!isValid) {
+        showCodeValidationState(false);
+        return;
+      }
+
+      showCodeValidationState(true);
       q('welcome').classList.add('hidden');
       q('app').classList.remove('hidden');
       goToStep(1);
+      startTimer();
     };
   }
 
@@ -360,6 +450,8 @@ window.addEventListener('DOMContentLoaded', () => {
 
   if (resultBtn) {
     resultBtn.onclick = async () => {
+      stopTimer();
+
       const answers = [
         q('task1').value,
         q('task2').value,
@@ -394,16 +486,24 @@ window.addEventListener('DOMContentLoaded', () => {
       q('s2').textContent = scores[1];
       q('s3').textContent = scores[2];
       q('s4').textContent = scores[3];
-      q('totalBig').textContent = total;
-      q('feedbackBox').textContent = buildFeedback(scores, integrityList, avgIntegrity, worstRisk);
+      q('totalBigInline').textContent = total;
 
       const payload = collectPayload(scores, total, avgIntegrity, worstRisk);
 
+      let sentSuccessfully = false;
       try {
         await sendToGoogleSheets(payload);
-        q('feedbackBox').textContent += '\n\nДані успішно передано в систему.';
+        sentSuccessfully = true;
       } catch (error) {
-        q('feedbackBox').textContent += '\n\nПОМИЛКА ВІДПРАВКИ: ' + error.message;
+        sentSuccessfully = false;
+      }
+
+      q('feedbackBox').textContent = buildFeedback(scores, integrityList, avgIntegrity, worstRisk, sentSuccessfully);
+
+      if (q('studentMessage')) {
+        q('studentMessage').textContent = sentSuccessfully
+          ? 'Дякуємо. Ваші відповіді успішно надіслано в систему. Після перевірки вчителем результат буде відображено у встановленому порядку.'
+          : 'Дякуємо. Попередній результат сформовано, але під час передавання даних у систему виникла технічна проблема. Повідомте про це вчителя.';
       }
 
       goToStep(5);
