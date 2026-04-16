@@ -4,6 +4,10 @@ const EXAM_DURATION_SECONDS = 30 * 60;
 let timerInterval = null;
 let timeLeft = EXAM_DURATION_SECONDS;
 
+/* =========================
+   БАЗОВІ ДОПОМІЖНІ ФУНКЦІЇ
+========================= */
+
 function normalize(text) {
   return (text || '')
     .toLowerCase()
@@ -25,10 +29,20 @@ function setCodeHint(message, isInvalid = false) {
   if (!hint || !input) return;
 
   hint.textContent = message;
-
-  if (isInvalid) input.classList.add('invalid');
-  else input.classList.remove('invalid');
+  input.classList.toggle('invalid', isInvalid);
 }
+
+function clearDraftAfterFinish() {
+  try {
+    localStorage.removeItem(CONFIG.storageKey || 'go10pr6p_draft_v1');
+  } catch (error) {
+    console.error('Не вдалося очистити локальну чернетку');
+  }
+}
+
+/* =========================
+   НАВІГАЦІЯ
+========================= */
 
 function goToStep(stepNumber) {
   document.querySelectorAll('.step').forEach((step) => step.classList.add('hidden'));
@@ -40,6 +54,10 @@ function goToStep(stepNumber) {
   if (q('progress')) q('progress').style.width = `${progress}%`;
   if (q('stepLabel')) q('stepLabel').textContent = `Крок ${stepNumber} із 5`;
 }
+
+/* =========================
+   ТАЙМЕР
+========================= */
 
 function formatTime(totalSeconds) {
   const minutes = Math.floor(totalSeconds / 60);
@@ -82,6 +100,10 @@ function stopTimer() {
   }
 }
 
+/* =========================
+   ПІДРАХУНОК ПОКРИТТЯ КЛЮЧІВ
+========================= */
+
 function countMatchedGroups(answer, groups) {
   const normalized = normalize(answer);
   let matched = 0;
@@ -116,6 +138,10 @@ function countInstitutions(answer) {
 
   return count;
 }
+
+/* =========================
+   АНАЛІЗ ДОБРОЧЕСНОСТІ
+========================= */
 
 function uniqueWordRatio(answer) {
   const words = normalize(answer).split(' ').filter(Boolean);
@@ -232,6 +258,10 @@ function integrityAnalysis(answer, references = []) {
 
   return { index, risk, flags };
 }
+
+/* =========================
+   ОЦІНЮВАННЯ ПО ЗАВДАННЯХ
+========================= */
 
 function scoreTask1(answer, taskConfig) {
   const text = normalize(answer);
@@ -366,6 +396,10 @@ function scoreAnswer(answer, taskConfig, index) {
   return Math.max(0, Math.min(taskConfig.max, score));
 }
 
+/* =========================
+   ЗБІР PAYLOAD І FALLBACK-ЗВІТ
+========================= */
+
 function collectPayload(scores, total, avgIntegrity, worstRisk) {
   return {
     studentCode: q('studentCode').value.trim(),
@@ -399,6 +433,10 @@ function buildFallbackReport(scores, total, sentSuccessfully) {
 
   return lines.join('\n');
 }
+
+/* =========================
+   ІНІЦІАЛІЗАЦІЯ
+========================= */
 
 window.addEventListener('DOMContentLoaded', () => {
   const startBtn = q('startBtn');
@@ -519,6 +557,7 @@ window.addEventListener('DOMContentLoaded', () => {
         fallbackActions.style.display = sentSuccessfully ? 'none' : 'flex';
       }
 
+      clearDraftAfterFinish();
       goToStep(5);
     };
   }
