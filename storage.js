@@ -1,6 +1,5 @@
 function saveDraft() {
   const data = {
-    code: document.getElementById('studentCode')?.value || '',
     task1: document.getElementById('task1')?.value || '',
     task2: document.getElementById('task2')?.value || '',
     task3: document.getElementById('task3')?.value || '',
@@ -11,7 +10,7 @@ function saveDraft() {
 
   const saveStatus = document.getElementById('saveStatus');
   if (saveStatus) {
-    saveStatus.textContent = 'Чернетку збережено локально';
+    saveStatus.textContent = 'Дані збережено локально';
   }
 }
 
@@ -22,7 +21,6 @@ function loadDraft() {
   try {
     const data = JSON.parse(raw);
 
-    if (document.getElementById('studentCode')) document.getElementById('studentCode').value = data.code || '';
     if (document.getElementById('task1')) document.getElementById('task1').value = data.task1 || '';
     if (document.getElementById('task2')) document.getElementById('task2').value = data.task2 || '';
     if (document.getElementById('task3')) document.getElementById('task3').value = data.task3 || '';
@@ -35,7 +33,7 @@ function loadDraft() {
 window.addEventListener('DOMContentLoaded', () => {
   loadDraft();
 
-  ['studentCode', 'task1', 'task2', 'task3', 'task4'].forEach((id) => {
+  ['task1', 'task2', 'task3', 'task4'].forEach((id) => {
     const el = document.getElementById(id);
     if (el) {
       el.addEventListener('input', saveDraft);
