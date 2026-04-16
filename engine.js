@@ -3,6 +3,7 @@ const q = (id) => document.getElementById(id);
 const EXAM_DURATION_SECONDS = 30 * 60;
 let timerInterval = null;
 let timeLeft = EXAM_DURATION_SECONDS;
+let examStartedAt = null;
 
 /* =========================
    БАЗОВІ ДОПОМІЖНІ ФУНКЦІЇ
@@ -413,7 +414,9 @@ function collectPayload(scores, total, avgIntegrity, worstRisk) {
     autoScore4: scores[3],
     autoTotal: total,
     integrityIndex: avgIntegrity,
-    riskLevel: worstRisk
+    riskLevel: worstRisk,
+    startedAt: examStartedAt || '',
+    finishedAt: new Date().toISOString()
   };
 }
 
@@ -478,6 +481,7 @@ window.addEventListener('DOMContentLoaded', () => {
       try {
         await validateStudentCode(code);
         setCodeHint('Код підтверджено. Доступ відкрито.', false);
+        examStartedAt = new Date().toISOString();
         q('welcome').classList.add('hidden');
         q('app').classList.remove('hidden');
         goToStep(1);
