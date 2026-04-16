@@ -4,15 +4,24 @@ async function sendToGoogleSheets(payload) {
   const response = await fetch(WEB_APP_URL, {
     method: 'POST',
     headers: {
-      'Content-Type': 'application/json'
+      'Content-Type': 'text/plain;charset=utf-8'
     },
     body: JSON.stringify(payload)
   });
 
-  if (!response.ok) {
-    throw new Error(`HTTP ${response.status}`);
+  const rawText = await response.text();
+  console.log('GAS raw response:', rawText);
+
+  let result;
+  try {
+    result = JSON.parse(rawText);
+  } catch (e) {
+    throw new Error('GAS повернув не JSON: ' + rawText);
   }
 
-  const result = await response.json();
+  if (!result.ok) {
+    throw new Error(result.error || 'Невідома помилка GAS');
+  }
+
   return result;
 }
