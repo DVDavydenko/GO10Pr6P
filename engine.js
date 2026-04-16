@@ -11,6 +11,7 @@ function normalize(text) {
 
 function goToStep(stepNumber) {
   document.querySelectorAll('.step').forEach((step) => step.classList.add('hidden'));
+
   const target = q(`step-${stepNumber}`);
   if (target) target.classList.remove('hidden');
 
@@ -341,8 +342,11 @@ function collectPayload(scores, total, avgIntegrity, worstRisk) {
 }
 
 window.addEventListener('DOMContentLoaded', () => {
-  if (q('startBtn')) {
-    q('startBtn').onclick = () => {
+  const startBtn = q('startBtn');
+  const resultBtn = q('resultBtn');
+
+  if (startBtn) {
+    startBtn.onclick = () => {
       q('welcome').classList.add('hidden');
       q('app').classList.remove('hidden');
       goToStep(1);
@@ -353,8 +357,8 @@ window.addEventListener('DOMContentLoaded', () => {
     btn.onclick = () => goToStep(Number(btn.dataset.step));
   });
 
-  if (q('resultBtn')) {
-    q('resultBtn').onclick = async () => {
+  if (resultBtn) {
+    resultBtn.onclick = async () => {
       const answers = [
         q('task1').value,
         q('task2').value,
