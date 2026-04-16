@@ -15,8 +15,8 @@ function goToStep(stepNumber) {
   if (target) target.classList.remove('hidden');
 
   const progress = ((stepNumber - 1) / 4) * 100;
-  q('progress').style.width = `${progress}%`;
-  q('stepLabel').textContent = `Крок ${stepNumber} із 5`;
+  if (q('progress')) q('progress').style.width = `${progress}%`;
+  if (q('stepLabel')) q('stepLabel').textContent = `Крок ${stepNumber} із 5`;
 }
 
 function countMatchedGroups(answer, groups) {
@@ -340,61 +340,70 @@ function collectPayload(scores, total, avgIntegrity, worstRisk) {
   };
 }
 
-document.getElementById('startBtn').onclick = () => {
-  q('welcome').classList.add('hidden');
-  q('app').classList.remove('hidden');
-  goToStep(1);
-};
+window.addEventListener('DOMContentLoaded', () => {
+  if (q('startBtn')) {
+    q('startBtn').onclick = () => {
+      q('welcome').classList.add('hidden');
+      q('app').classList.remove('hidden');
+      goToStep(1);
+    };
+  }
 
-document.querySelectorAll('[data-step]').forEach((btn) => {
-  btn.onclick = () => goToStep(Number(btn.dataset.step));
-});
-
-document.getElementById('resultBtn').onclick = async () => {
-  const answers = [
-    q('task1').value,
-    q('task2').value,
-    q('task3').value,
-    q('task4').value
-  ];
-
-  const scores = [];
-  const integrityList = [];
-  let total = 0;
-
-  answers.forEach((answer, index) => {
-    const taskConfig = CONFIG.tasks[index];
-    const integrity = integrityAnalysis(answer, taskConfig.references || []);
-    const score = scoreAnswer(answer, taskConfig, index);
-
-    integrityList.push(integrity);
-    scores.push(score);
-    total += score;
+  document.querySelectorAll('[data-step]').forEach((btn) => {
+    btn.onclick = () => goToStep(Number(btn.dataset.step));
   });
 
-  const avgIntegrity = Math.round(
-    integrityList.reduce((sum, item) => sum + item.index, 0) / integrityList.length
-  );
+  if (q('resultBtn')) {
+    q('resultBtn').onclick = async () => {
+      const answers = [
+        q('task1').value,
+        q('task2').value,
+        q('task3').value,
+        q('task4').value
+      ];
 
-  let worstRisk = 'низький';
-  if (integrityList.some((item) => item.risk === 'критичний')) worstRisk = 'критичний';
-  else if (integrityList.some((item) => item.risk === 'високий')) worstRisk = 'високий';
-  else if (integrityList.some((item) => item.risk === 'помірний')) worstRisk = 'помірний';
+      const scores = [];
+      const integrityList = [];
+      let total = 0;
 
-  q('s1').textContent = scores[0];
-  q('s2').textContent = scores[1];
-  q('s3').textContent = scores[2];
-  q('s4').textContent = scores[3];
-  q('totalBig').textContent = total;
-  q('feedbackBox').textContent = buildFeedback(scores, integrityList, avgIntegrity, worstRisk);
+      answers.forEach((answer, index) => {
+        const taskConfig = CONFIG.tasks[index];
+        const integrity = integrityAnalysis(answer, taskConfig.references || []);
+        const score = scoreAnswer(answer, taskConfig, index);
 
-  const payload = collectPayload(scores, total, avgIntegrity, worstRisk);
+        integrityList.push(integrity);
+        scores.push(score);
+        total += score;
+      });
 
- try {
-  const result = await sendToGoogleSheets(payload);
-  console.log('Sheets response:', result);
-  q('feedbackBox').textContent += '\n\nДані успішно передано в систему.';
-} catch (error) {
-  console.error('Помилка відправки в Google Sheets:', error);
-  q('feedbackBox').textContent += '\n\nПОМИЛКА ВІДПРАВКИ: ' + error.message;
-}
+      const avgIntegrity = Math.round(
+        integrityList.reduce((sum, item) => sum + item.index, 0) / integrityList.length
+      );
+
+      let worstRisk = 'низький';
+      if (integrityList.some((item) => item.risk === 'критичний')) worstRisk = 'критичний';
+      else if (integrityList.some((item) => item.risk === 'високий')) worstRisk = 'високий';
+      else if (integrityList.some((item) => item.risk === 'помірний')) worstRisk = 'помірний';
+
+      q('s1').textContent = scores[0];
+      q('s2').textContent = scores[1];
+      q('s3').textContent = scores[2];
+      q('s4').textContent = scores[3];
+      q('totalBig').textContent = total;
+      q('feedbackBox').textContent = buildFeedback(scores, integrityList, avgIntegrity, worstRisk);
+
+      const payload = collectPayload(scores, total, avgIntegrity, worstRisk);
+
+      try {
+        const result = await sendToGoogleSheets(payload);
+        console.log('Sheets response:', result);
+        q('feedbackBox').textContent += '\n\nДані успішно передано в систему.';
+      } catch (error) {
+        console.error('Помилка відправки в Google Sheets:', error);
+        q('feedbackBox').textContent += '\n\nПОМИЛКА ВІДПРАВКИ: ' + error.message;
+      }
+
+      goToStep(5);
+    };
+  }
+});
