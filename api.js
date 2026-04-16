@@ -1,5 +1,20 @@
 const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbwhOqjVWhpmB0ti0BONjVQzimJHEvQ3dFyP_P1tQdtJbnmJ-EjP1MceNaPRxgbRGkVl/exec';
 
+async function validateStudentCodeRemote(studentCode) {
+  const url = `${WEB_APP_URL}?action=validate_code&code=${encodeURIComponent(studentCode)}`;
+  const response = await fetch(url, { method: 'GET' });
+  const rawText = await response.text();
+
+  let result;
+  try {
+    result = JSON.parse(rawText);
+  } catch (error) {
+    throw new Error('GAS повернув не JSON під час перевірки коду');
+  }
+
+  return result;
+}
+
 async function sendToGoogleSheets(payload) {
   const response = await fetch(WEB_APP_URL, {
     method: 'POST',
