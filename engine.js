@@ -29,7 +29,7 @@ function showCodeValidationState(isValid) {
     hint.textContent = 'Код прийнято. Можна розпочинати роботу.';
   } else {
     input.classList.add('invalid');
-    hint.textContent = 'Введіть коректний код: 3–20 символів, без пробілів на початку та в кінці.';
+    hint.textContent = 'Введіть коректний код: 3–20 символів, без зайвих пробілів.';
   }
 }
 
@@ -57,11 +57,8 @@ function updateTimerUI() {
   timerBox.textContent = formatTime(timeLeft);
   timerBox.classList.remove('warning', 'danger');
 
-  if (timeLeft <= 300) {
-    timerBox.classList.add('danger');
-  } else if (timeLeft <= 900) {
-    timerBox.classList.add('warning');
-  }
+  if (timeLeft <= 300) timerBox.classList.add('danger');
+  else if (timeLeft <= 900) timerBox.classList.add('warning');
 }
 
 function startTimer() {
@@ -76,7 +73,6 @@ function startTimer() {
 
     if (timeLeft === 0) {
       stopTimer();
-      if (q('resultBtn') && !q('step-5').classList.contains('hidden')) return;
       if (q('resultBtn')) q('resultBtn').click();
     }
   }, 1000);
@@ -373,20 +369,14 @@ function scoreAnswer(answer, taskConfig, index) {
   return Math.max(0, Math.min(taskConfig.max, score));
 }
 
-function buildFeedback(scores, integrityList, avgIntegrity, worstRisk, sentSuccessfully) {
-  const lines = [];
-  lines.push(`Індекс доброчесності: ${avgIntegrity}/100`);
-  lines.push(`Рівень ризику: ${worstRisk}`);
-  lines.push('');
-
-  integrityList.forEach((item, index) => {
-    lines.push(`Завдання ${index + 1}: ${scores[index]}/3 • індекс ${item.index}/100 • ризик: ${item.risk}`);
-  });
-
-  lines.push('');
-  lines.push(sentSuccessfully ? 'Дані успішно передано в систему.' : 'Виникла помилка передавання даних у систему.');
-
-  return lines.join('\n');
+function buildTeacherPayloadData(scores, integrityList, avgIntegrity, worstRisk, sentSuccessfully) {
+  return {
+    scores,
+    integrityList,
+    avgIntegrity,
+    worstRisk,
+    sentSuccessfully
+  };
 }
 
 function collectPayload(scores, total, avgIntegrity, worstRisk) {
@@ -406,6 +396,23 @@ function collectPayload(scores, total, avgIntegrity, worstRisk) {
   };
 }
 
+function buildFallbackReport(scores, total, sentSuccessfully) {
+  const lines = [
+    `Завдання 1: ${scores[0]}/3`,
+    `Завдання 2: ${scores[1]}/3`,
+    `Завдання 3: ${scores[2]}/3`,
+    `Завдання 4: ${scores[3]}/3`,
+    '',
+    `Загальний попередній бал: ${total}/12`,
+    '',
+    sentSuccessfully
+      ? 'Дані успішно передано в систему.'
+      : 'Під час передавання даних у систему виникла технічна помилка.'
+  ];
+
+  return lines.join('\n');
+}
+
 window.addEventListener('DOMContentLoaded', () => {
   const startBtn = q('startBtn');
   const resultBtn = q('resultBtn');
@@ -416,13 +423,15 @@ window.addEventListener('DOMContentLoaded', () => {
 
   if (studentCodeInput) {
     studentCodeInput.addEventListener('input', () => {
-      const isValid = isValidStudentCode(studentCodeInput.value);
-      if (studentCodeInput.value.trim() === '') {
+      const value = studentCodeInput.value;
+
+      if (value.trim() === '') {
         studentCodeInput.classList.remove('invalid');
         if (q('codeHint')) q('codeHint').textContent = 'Введіть ваш навчальний код для початку роботи.';
         return;
       }
-      showCodeValidationState(isValid);
+
+      showCodeValidationState(isValidStudentCode(value));
     });
   }
 
@@ -482,10 +491,10 @@ window.addEventListener('DOMContentLoaded', () => {
       else if (integrityList.some((item) => item.risk === 'високий')) worstRisk = 'високий';
       else if (integrityList.some((item) => item.risk === 'помірний')) worstRisk = 'помірний';
 
-      q('s1').textContent = scores[0];
-      q('s2').textContent = scores[1];
-      q('s3').textContent = scores[2];
-      q('s4').textContent = scores[3];
+      q('s1').textContent = `${scores[0]}/3`;
+      q('s2').textContent = `${scores[1]}/3`;
+      q('s3').textContent = `${scores[2]}/3`;
+      q('s4').textContent = `${scores[3]}/3`;
       q('totalBigInline').textContent = total;
 
       const payload = collectPayload(scores, total, avgIntegrity, worstRisk);
@@ -498,12 +507,17 @@ window.addEventListener('DOMContentLoaded', () => {
         sentSuccessfully = false;
       }
 
-      q('feedbackBox').textContent = buildFeedback(scores, integrityList, avgIntegrity, worstRisk, sentSuccessfully);
+      q('feedbackBox').textContent = buildFallbackReport(scores, total, sentSuccessfully);
 
       if (q('studentMessage')) {
         q('studentMessage').textContent = sentSuccessfully
           ? 'Дякуємо. Ваші відповіді успішно надіслано в систему. Після перевірки вчителем результат буде відображено у встановленому порядку.'
           : 'Дякуємо. Попередній результат сформовано, але під час передавання даних у систему виникла технічна проблема. Повідомте про це вчителя.';
+      }
+
+      const fallbackActions = q('fallbackActions');
+      if (fallbackActions) {
+        fallbackActions.style.display = sentSuccessfully ? 'none' : 'flex';
       }
 
       goToStep(5);
