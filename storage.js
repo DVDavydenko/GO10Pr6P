@@ -32,27 +32,8 @@ function loadDraft() {
   }
 }
 
-function clearDraft() {
-  localStorage.removeItem(CONFIG.storageKey || 'go10pr6p_draft_v1');
-
-  ['studentCode', 'task1', 'task2', 'task3', 'task4'].forEach((id) => {
-    const el = document.getElementById(id);
-    if (el) el.value = '';
-  });
-
-  const saveStatus = document.getElementById('saveStatus');
-  if (saveStatus) {
-    saveStatus.textContent = 'Чернетку очищено';
-  }
-}
-
 window.addEventListener('DOMContentLoaded', () => {
   loadDraft();
-
-  const clearBtn = document.getElementById('clearBtn');
-  if (clearBtn) {
-    clearBtn.addEventListener('click', clearDraft);
-  }
 
   ['studentCode', 'task1', 'task2', 'task3', 'task4'].forEach((id) => {
     const el = document.getElementById(id);
