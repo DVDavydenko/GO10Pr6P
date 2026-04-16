@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Практична робота. Громадянська освіта. 10 клас</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <section id="welcome" class="screen">
+    <div class="card hero">
+      <div class="badge">Практична робота</div>
+      <h1>Громадянська освіта</h1>
+      <p class="sub">10 клас • тема: «Аналіз механізмів досягнення суспільного добробуту»</p>
+
+      <div class="grid">
+        <div class="mini"><div class="k">Формат</div><div class="v">4 розгорнуті завдання</div></div>
+        <div class="mini"><div class="k">Максимум</div><div class="v">12 балів</div></div>
+        <div class="mini"><div class="k">Результат</div><div class="v">Попередній автоматичний бал + перевірка вчителя</div></div>
+        <div class="mini"><div class="k">Збереження</div><div class="v">Чернетка зберігається у браузері</div></div>
+      </div>
+
+      <div class="field">
+        <label for="studentCode">Код учня / учениці</label>
+        <input id="studentCode" placeholder="Наприклад: 10-А-07" />
+      </div>
+
+      <div class="btns center-btns">
+        <button class="primary" id="startBtn">Розпочати</button>
+        <button class="ghost" id="clearBtn">Очистити локальну чернетку</button>
+      </div>
+    </div>
+  </section>
+
+  <div id="app" class="hidden">
+    <header class="app-header">
+      <div class="bar">
+        <div class="pill">Громадянська освіта • 10 клас</div>
+        <div class="progress-wrap"><div id="progress" class="progress"></div></div>
+        <div id="saveStatus" class="status">Чернетку не збережено</div>
+        <div id="stepLabel" class="status">Крок 1 із 5</div>
+      </div>
+    </header>
+
+    <main class="wrap page">
+      <section id="step-1" class="card panel step">
+        <h2>Завдання 1. Економічний цикл та обмеженість ресурсів</h2>
+        <div class="desc">Оберіть один повсякденний товар (зошит, смартфон, футболка, шоколадка тощо).
+
+Опишіть його шлях від виробництва до споживання, використовуючи поняття фактори виробництва (земля, праця, капітал, підприємливість), обмін, споживання.
+
+Поясніть, чому ресурси для створення цього товару є обмеженими.
+
+Як ця обмеженість впливає на вибір споживача? Наведіть приклад.</div>
+        <textarea id="task1" placeholder="Введіть розгорнуту відповідь..."></textarea>
+        <div class="nav"><span></span><button class="primary" data-step="2">Далі</button></div>
+      </section>
+
+      <section id="step-2" class="card panel step hidden">
+        <h2>Завдання 2. Сталий розвиток</h2>
+        <div class="desc">Сформулюйте 3–5 власних звичок, які сприяють збереженню довкілля (економія електроенергії, сортування сміття, відмова від поліетиленових пакетів тощо).
+
+Обґрунтуйте, як раціональне споживання впливає на подолання глобальної екологічної кризи.</div>
+        <textarea id="task2" placeholder="Введіть розгорнуту відповідь..."></textarea>
+        <div class="nav"><button class="ghost" data-step="1">Назад</button><button class="primary" data-step="3">Далі</button></div>
+      </section>
+
+      <section id="step-3" class="card panel step hidden">
+        <h2>Завдання 3. Ринок праці та права споживачів</h2>
+        <div class="desc">Частина А (пам’ятка). Складіть коротку пам’ятку «Мої права як споживача» (5 пунктів), спираючись на законодавство (ст. 42 Конституції України, Закон «Про захист прав споживачів»).
+
+Частина Б (гендерна рівність). Що означає поняття «скляна стеля»? Запропонуйте два конкретні кроки, які держава може зробити для подолання нерівності в оплаті праці чоловіків і жінок.</div>
+        <textarea id="task3" placeholder="Введіть розгорнуту відповідь..."></textarea>
+        <div class="nav"><button class="ghost" data-step="2">Назад</button><button class="primary" data-step="4">Далі</button></div>
+      </section>
+
+      <section id="step-4" class="card panel step hidden">
+        <h2>Завдання 4. Корупція та антикорупційні органи</h2>
+        <div class="desc">Назвіть три ключові антикорупційні органи України (створені після 2014 року). Для одного з них коротко опишіть його функцію.
+
+Поясніть, чому особисте несприйняття хабарництва окремим громадянином впливає на прозорість економіки всієї країни (наведіть 2 аргументи).</div>
+        <textarea id="task4" placeholder="Введіть розгорнуту відповідь..."></textarea>
+        <div class="nav"><button class="ghost" data-step="3">Назад</button><button class="primary" id="resultBtn">Показати попередній результат</button></div>
+      </section>
+
+      <section id="step-5" class="card panel step hidden">
+        <div class="final">
+          <div class="big" id="totalBig">0</div>
+          <h2>Попередній результат</h2>
+          <p class="muted">Це попередній автоматичний підрахунок. Остаточний бал визначає вчитель.</p>
+        </div>
+        <div class="result-grid">
+          <div class="score"><div class="n" id="s1">0</div><div class="t">Завдання 1 / 3</div></div>
+          <div class="score"><div class="n" id="s2">0</div><div class="t">Завдання 2 / 3</div></div>
+          <div class="score"><div class="n" id="s3">0</div><div class="t">Завдання 3 / 3</div></div>
+          <div class="score"><div class="n" id="s4">0</div><div class="t">Завдання 4 / 3</div></div>
+        </div>
+        <div class="criteria" id="feedbackBox"></div>
+        <div class="nav"><button class="ghost" data-step="4">Назад</button><div class="btns"><button class="primary" id="downloadBtn">Завантажити звіт .txt</button><button class="ghost" onclick="window.print()">Друк</button></div></div>
+      </section>
+    </main>
+  </div>
+
+  <script src="config.js"></script>
+  <script src="engine.js"></script>
+  <script src="storage.js"></script>
+</body>
+</html>
