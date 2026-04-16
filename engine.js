@@ -390,12 +390,11 @@ document.getElementById('resultBtn').onclick = async () => {
 
   const payload = collectPayload(scores, total, avgIntegrity, worstRisk);
 
-  try {
-    const result = await sendToGoogleSheets(payload);
-    console.log('Sheets response:', result);
-  } catch (error) {
-    console.error('Помилка відправки в Google Sheets:', error);
-  }
-
-  goToStep(5);
-};
+ try {
+  const result = await sendToGoogleSheets(payload);
+  console.log('Sheets response:', result);
+  q('feedbackBox').textContent += '\n\nДані успішно передано в систему.';
+} catch (error) {
+  console.error('Помилка відправки в Google Sheets:', error);
+  q('feedbackBox').textContent += '\n\nПОМИЛКА ВІДПРАВКИ: ' + error.message;
+}
