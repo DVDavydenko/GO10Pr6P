@@ -9,17 +9,17 @@ async function postToGAS(payload) {
     body: JSON.stringify(payload)
   });
 
-  const rawText = await response.text();
+  const text = await response.text();
 
   let result;
   try {
-    result = JSON.parse(rawText);
-  } catch (error) {
-    throw new Error('GAS повернув не JSON');
+    result = JSON.parse(text);
+  } catch {
+    throw new Error('Помилка сервера (не JSON)');
   }
 
   if (!result.ok) {
-    throw new Error(result.error || 'Невідома помилка GAS');
+    throw new Error(result.error || 'Помилка сервера');
   }
 
   return result;
