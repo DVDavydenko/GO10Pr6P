@@ -28,7 +28,7 @@ function loadDraft() {
     if (document.getElementById('task3')) document.getElementById('task3').value = data.task3 || '';
     if (document.getElementById('task4')) document.getElementById('task4').value = data.task4 || '';
   } catch (error) {
-    console.error('Помилка читання чернетки:', error);
+    console.error('Помилка читання чернетки');
   }
 }
 
